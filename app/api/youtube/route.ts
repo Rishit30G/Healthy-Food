@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 
-const YOUTUBE_API_KEY = process.env.YOUTUBE_API_KEY; // Ensure this exists in .env.local
+const YOUTUBE_API_KEY = process.env.YOUTUBE_API_KEY;
 
 export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url);

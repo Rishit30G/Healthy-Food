@@ -11,7 +11,7 @@ import Image from "next/image";
 import SkeletonCard from "@/components/SkeletonCard";
 import { useEffect, useState } from "react";
 import useFetch from "@/hooks/use-fetch";
-import { getDetails, getImage } from "@/actions/dashboard";
+import { getDetails } from "@/actions/dashboard";
 import {
   placeholders,
   useDynamicPlaceholder,
@@ -22,19 +22,13 @@ export default function Home() {
   const [userInput, setUserInput] = useState("");
   const [cardData, setCardData] = useState<any[]>([]);
   const [imageUrl, setImageUrl] = useState("");
-
   const placeholder = useDynamicPlaceholder(placeholders, 6000);
+
   const {
     loading: geminiLoading,
     data: geminiData,
     fn: geminiFn,
   } = useFetch(getDetails);
-
-  const {
-    loading: imageLoading,
-    data: imageData,
-    fn: imageFn,
-  } = useFetch(getImage);
 
   const handleSubmit = async () => {
     if (!userInput.trim()) return;
@@ -42,45 +36,59 @@ export default function Home() {
   };
 
   useEffect(() => {
-    const fetchImage = async () => {
-      await imageFn("Healthy food with broccoli, spinach, and avocado");
-      
-    };
-    fetchImage();
-  }, []);
-
-  useEffect(() => {
-    if(imageData){
-      setImageUrl(imageData);
-    }
-  }
-  , [imageData]);
-
-  useEffect(() => {
-    const fetchYoutubeVideo = async () => {
+    const fetchYoutubeAndImages = async () => {
       if(geminiData && geminiData.length > 0){
-        const updatedData = await Promise.all(
+        const withYouTube = await Promise.all(
           geminiData.map(async (item: any) => {
             try{
               const response = await fetch(`api/youtube?query=${item.title}`);
               const data = await response.json();
               return {
                 ...item, 
-                youtube: data.videoUrl
+                youtube: data.videoUrl, 
+                imageUrl: null, 
+                imagePrompt: item.image_prompt
               }
             }catch(error){
-              console.error("Failed to fetch video", error);
               return {
                 ...item,
-                youtube: null
+                youtube: null, 
+                imageUrl: null, 
+                imagePrompt: item.image_prompt
               };
             }
           })
         ); 
-        setCardData(updatedData);
+        setCardData(withYouTube);
+
+        withYouTube.forEach(async (card: any) => {
+          console.log(card.imagePrompt);
+          try{
+            const response = await fetch('/api/image', {
+              method: 'POST', 
+              headers: {
+                'Content-Type': 'application/json', 
+              },
+              body: JSON.stringify({prompt: card.imagePrompt})
+            }); 
+
+            if(!response.ok){
+              throw new Error('Image generation failed');
+            }
+
+            const blob = await response.blob();
+            const url = URL.createObjectURL(blob);
+
+            setCardData(prev => prev.map(prevCard => 
+               prevCard.title === card.title ? {...prevCard, imageUrl: url} : prevCard
+            )); 
+          }catch(error){
+            console.error("Failed to generate image", error);
+          }
+        })
       }
     };
-    fetchYoutubeVideo();
+    fetchYoutubeAndImages();
   }, [geminiData]);
 
   return (
@@ -133,7 +141,7 @@ export default function Home() {
 
       {/* Cards  */}
       <div className="grid grid-cols-2 my-10 place-items-center gap-8 max-lg:grid-cols-1 max-lg:px-5">
-        {/* {geminiLoading ? (
+        {geminiLoading ? (
           <SkeletonCard />
         ) : (
           cardData?.map((card, index) => (
@@ -142,13 +150,14 @@ export default function Home() {
               className="bg-green-100/30 shadow-lg rounded-t-xl"
             >
               <CardContent className="space-y-5">
-                <Image
-                  src="/image.jpg"
-                  alt="Dish"
-                  width={500}
-                  height={100}
-                  className="rounded-tr-lg rounded-tl-lg"
-                />
+                {
+                  !card.imageUrl ? (
+                    <div className="w-full h-80 bg-green-800/20 rounded-tr-lg rounded-tl-lg animate-pulse" />
+                  ) : (
+                    <img src={card.imageUrl} className="w-full h-80 rounded-tr-lg rounded-tl-lg" alt={card.title} />
+                  )
+                }
+
                 <div className="flex justify-between flex-col w-full gap-2 px-3">
                   <h2 className="text-2xl text-green-700 outfit-bold">
                     {card.title}
@@ -173,14 +182,7 @@ export default function Home() {
               </CardFooter>
             </Card>
           ))
-        )} */}
-        {
-          imageLoading ? (
-            <SkeletonCard />
-          ) : (
-            <Image src={imageUrl} alt="Dish" width={500} height={100} />
-          )
-        }
+        )}
       </div>
     </div>
   );

@@ -1,7 +1,7 @@
 "use client";
 
 import { Input } from "@/components/ui/input";
-import { CornerDownRight, Shuffle } from "lucide-react";
+import { CornerDownRight, Shuffle, Soup } from "lucide-react";
 import {
   Card,
   CardContent,
@@ -21,7 +21,7 @@ import Link from "next/link";
 export default function Home() {
   const [userInput, setUserInput] = useState("");
   const [cardData, setCardData] = useState<any[]>([]);
-  const [imageUrl, setImageUrl] = useState("");
+  const [hasSearched, setHasSearched] = useState<boolean>(false);
   const placeholder = useDynamicPlaceholder(placeholders, 6000);
 
   const {
@@ -30,66 +30,116 @@ export default function Home() {
     fn: geminiFn,
   } = useFetch(getDetails);
 
+
   const handleSubmit = async () => {
     if (!userInput.trim()) return;
+    setHasSearched(true);
+    setCardData([]);
     await geminiFn(userInput);
+  };
+
+  const handleShuffleClick = () => {
+   //set random placeholders array in the setUserInput 
+    setUserInput(placeholders[Math.floor(Math.random() * placeholders.length)]);
+  }
+
+  const fetchImage = async (prompt: string) => {
+    try {
+      const response = await fetch('/api/image', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ prompt }),
+      });
+
+      const contentType = response.headers.get('content-type');
+      if (!contentType?.startsWith('image/')) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Invalid image response');
+      }
+
+      const blob = await response.blob();
+
+      if (!blob.type.startsWith('image/')) {
+        throw new Error('Received non-image content');
+      }
+
+
+      return URL.createObjectURL(blob);
+    } catch (error) {
+      console.error("Failed to generate image", error);
+      return '/image.jpeg'; // Fallback image path
+    }
   };
 
   useEffect(() => {
     const fetchYoutubeAndImages = async () => {
-      if(geminiData && geminiData.length > 0){
+      if (!geminiData || geminiData.length === 0) return; // Prevent running on empty data
+  
+      try {
+        // 🔹 Fetch YouTube videos for each item in geminiData
         const withYouTube = await Promise.all(
           geminiData.map(async (item: any) => {
-            try{
-              const response = await fetch(`api/youtube?query=${item.title}`);
+            try {
+              const response = await fetch(`/api/youtube?query=${encodeURIComponent(item.title)}`);
               const data = await response.json();
               return {
-                ...item, 
-                youtube: data.videoUrl, 
-                imageUrl: null, 
-                imagePrompt: item.image_prompt
-              }
-            }catch(error){
-              return {
                 ...item,
-                youtube: null, 
-                imageUrl: null, 
+                youtube: data.videoUrl || null,
+                imageUrl: null,
                 imagePrompt: item.image_prompt
               };
+            } catch (error) {
+              console.error("YouTube API fetch failed:", error);
+              return { ...item, youtube: null, imageUrl: null, imagePrompt: item.image_prompt };
             }
           })
-        ); 
-        setCardData(withYouTube);
-
-        withYouTube.forEach(async (card: any) => {
-          console.log(card.imagePrompt);
-          try{
-            const response = await fetch('/api/image', {
-              method: 'POST', 
-              headers: {
-                'Content-Type': 'application/json', 
-              },
-              body: JSON.stringify({prompt: card.imagePrompt})
-            }); 
-
-            if(!response.ok){
-              throw new Error('Image generation failed');
-            }
-
-            const blob = await response.blob();
-            const url = URL.createObjectURL(blob);
-
-            setCardData(prev => prev.map(prevCard => 
-               prevCard.title === card.title ? {...prevCard, imageUrl: url} : prevCard
-            )); 
-          }catch(error){
-            console.error("Failed to generate image", error);
+        );
+  
+        setCardData(withYouTube); 
+  
+        const batches: any[][] = [];
+        for (let i = 0; i < withYouTube.length; i += 2) {
+          batches.push(withYouTube.slice(i, i + 2));
+        }
+  
+        for (let i = 0; i < batches.length; i++) {
+          const batch = batches[i];
+  
+          // Fetch images in parallel for each batch
+          const imageResults = await Promise.all(
+            batch.map(async (card) => {
+              try {
+                const imageUrl = await fetchImage(card.imagePrompt);
+                return { title: card.title, imageUrl };
+              } catch (error) {
+                console.error("Image fetch failed:", error);
+                return { title: card.title, imageUrl: null };
+              }
+            })
+          );
+  
+          // 🔹 Efficient state update using function form
+          setCardData((prev) =>
+            prev.map((prevCard) => {
+              const foundImage = imageResults.find((img) => img.title === prevCard.title);
+              return foundImage ? { ...prevCard, imageUrl: foundImage.imageUrl } : prevCard;
+            })
+          );
+  
+          // 🔹 Avoid excessive delays unless necessary
+          if (i < batches.length - 1) {
+            await new Promise((resolve) => setTimeout(resolve, 60 * 1000));
           }
-        })
+        }
+      } catch (error) {
+        console.error("Error in fetchYoutubeAndImages:", error);
       }
     };
+  
     fetchYoutubeAndImages();
-  }, [geminiData]);
+  }, [geminiData]); // Depend only on geminiData
 
   return (
     <div className="container max-w-3xl mx-auto">
@@ -114,19 +164,25 @@ export default function Home() {
         <div className="relative w-[600px] max-md:w-[400px] ">
           <Input
             placeholder={placeholder}
-            className="rounded-full bg-green-800/15 w-full caret-green-800 shadow-green-800/20 shadow-lg"
+            className="rounded-full bg-green-800/15 w-full caret-green-800 shadow-green-800/20 shadow-lg pr-20"
             value={userInput}
             onChange={(e) => setUserInput(e.target.value)}
           />
-          <Shuffle
+         <Shuffle
             size={26}
             className="text-green-700 absolute right-12 top-1/2 transform -translate-y-1/2 bg-green-100 rounded-full p-1 cursor-pointer"
+            onClick={handleShuffleClick}
           />
           <CornerDownRight
             size={26}
-            className="text-green-700 absolute right-3 top-1/2 transform -translate-y-1/2 bg-green-100 rounded-full p-1 cursor-pointer"
+            className=" absolute right-3 top-1/2 transform -translate-y-1/2 rounded-full p-1 cursor-pointer bg-green-700 text-green-100"
             onClick={handleSubmit}
-          />
+            onKeyDown={(e) => {
+              if (e.key === "Enter") {
+                handleSubmit();
+              }
+            }}
+        />
         </div>
         <div className="flex justify-end mr-2 w-[600px] max-md:w-[400px]">
           <h3 className="text-green-600 outfit-regular text-xs mt-2">
@@ -140,21 +196,35 @@ export default function Home() {
       </div>
 
       {/* Cards  */}
-      <div className="grid grid-cols-2 my-10 place-items-center gap-8 max-lg:grid-cols-1 max-lg:px-5">
+      {!hasSearched && (  // Show only when no search has been made
+        <div className="min-h-[60vh] flex items-center justify-center">
+          <div className="flex items-center justify-center flex-col">
+            <Image src="/1.png" width={300} height={300} alt="Healthy Food" />
+            <div className="flex items-center justify-center gap-2 mt-5">
+              <p className="text-green-700 text-center font-bold outfit-regular-italic"> 
+                Cook some great 
+                <span> <Soup className="inline-block size-6 text-green-700 mb-1 mx-1"/></span> 
+                with us!
+              </p> 
+            </div>
+          </div>
+        </div>
+      )}
+      <div className="grid grid-cols-2 my-10 place-items-center gap-8 max-sm:grid-cols-1 max-lg:px-5">
         {geminiLoading ? (
           <SkeletonCard />
         ) : (
           cardData?.map((card, index) => (
             <Card
               key={index}
-              className="bg-green-100/30 shadow-lg rounded-t-xl"
+              className="bg-green-100/30 shadow-lg rounded-t-xl min-h-[550px] max-lg:min-h-fit"
             >
               <CardContent className="space-y-5">
                 {
                   !card.imageUrl ? (
-                    <div className="w-full h-80 bg-green-800/20 rounded-tr-lg rounded-tl-lg animate-pulse" />
+                    <div className="w-full h-[23rem] bg-green-800/20 rounded-tr-lg rounded-tl-lg animate-pulse" />
                   ) : (
-                    <img src={card.imageUrl} className="w-full h-80 rounded-tr-lg rounded-tl-lg" alt={card.title} />
+                    <img src={card.imageUrl} className="w-full h-full rounded-tr-lg rounded-tl-lg" alt={card.title} />
                   )
                 }
 

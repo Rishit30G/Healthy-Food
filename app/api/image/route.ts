@@ -27,12 +27,15 @@ export async function POST(req: NextRequest) {
             }
         );
 
-        if (!response.ok) {
-            const error = await response.json();
-            throw new Error(error.message);
+        const contentType = response.headers.get("content-type");
+        if (!contentType?.startsWith("image/")) {
+            const errorData = await response.json();
+            throw new Error(errorData.error || "Invalid image response");
         }
 
+
         const imageBuffer = await response.arrayBuffer(); // Get image as buffer
+
 
         return new NextResponse(imageBuffer, {
             status: 200,

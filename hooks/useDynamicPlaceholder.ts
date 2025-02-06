@@ -2,11 +2,10 @@
 import { useEffect, useState } from "react";
 
 export const placeholders = [
-    "I purchased spinach today, what can I make out of it ?",
-    "What's a good recipe for a healthy breakfast ?",
-    "List down some recepies for a healthy lunch",
-    "What are some healthy snacks I can make ?",
-    "Any healthy recipes with broccoli?"
+    "I have spinach, what can I make ?",
+    "Suggest some recipe for breakfast",
+    "I'm feeling happy, what should I cook ?",
+    "Any healthy evening snacks ?",
 ]; 
 
 

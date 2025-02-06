@@ -31,7 +31,7 @@ export default function RootLayout({
             <p className="flex items-center">
               Made for 
               <img className="inline-block object-contain size-12 mb-2" src="/vege.gif" alt="Vegetable"/>
-              consumers!
+              consumers
             </p>
           </div>
         </footer>

@@ -30,7 +30,7 @@ export default function RootLayout({
         <div className="container mx-auto text-center text-green-800 outfit-regular flex items-center justify-center">
             <p className="flex items-center">
               Made for 
-              <img className="inline-block object-contain size-12 mb-2" src="/vege.gif" alt="Vegetable"/>
+              <img className="inline-block object-contain size-12 mb-2" src="/vege.gif" alt="Vegetable" loading="eager" />
               consumers
             </p>
           </div>

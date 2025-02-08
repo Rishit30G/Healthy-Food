@@ -20,14 +20,17 @@ import Link from "next/link";
 
 export default function Home() {
   const [userInput, setUserInput] = useState("");
+  //eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [cardData, setCardData] = useState<any[]>([]);
   const [hasSearched, setHasSearched] = useState<boolean>(false);
+  const [isFetching, setIsFetching] = useState(false);
   const placeholder = useDynamicPlaceholder(placeholders, 6000);
 
   const {
     loading: geminiLoading,
     data: geminiData,
     fn: geminiFn,
+    error: geminiError,
   } = useFetch(getDetails);
 
 
@@ -76,10 +79,11 @@ export default function Home() {
   useEffect(() => {
     const fetchYoutubeAndImages = async () => {
       if (!geminiData || geminiData.length === 0) return; // Prevent running on empty data
-  
+      setIsFetching(true); // 🔹 Disable button
       try {
         // 🔹 Fetch YouTube videos for each item in geminiData
         const withYouTube = await Promise.all(
+          //eslint-disable-next-line @typescript-eslint/no-explicit-any
           geminiData.map(async (item: any) => {
             try {
               const response = await fetch(`/api/youtube?query=${encodeURIComponent(item.title)}`);
@@ -99,6 +103,7 @@ export default function Home() {
   
         setCardData(withYouTube); 
   
+        //eslint-disable-next-line @typescript-eslint/no-explicit-any
         const batches: any[][] = [];
         for (let i = 0; i < withYouTube.length; i += 2) {
           batches.push(withYouTube.slice(i, i + 2));
@@ -135,6 +140,8 @@ export default function Home() {
         }
       } catch (error) {
         console.error("Error in fetchYoutubeAndImages:", error);
+      }finally {
+        setIsFetching(false); // 🔹 Enable button after fetch completes
       }
     };
   
@@ -151,6 +158,7 @@ export default function Home() {
             className="inline-block object-contain size-12 animate-bounce-slow max-md:size-16"
             src="https://i.postimg.cc/SsbJKSKr/pngtree-healthy-food-png-png-image-10154104.png"
             alt="Food Icon"
+            loading="eager"
           />
           od
         </h1>
@@ -168,28 +176,31 @@ export default function Home() {
             value={userInput}
             onChange={(e) => setUserInput(e.target.value)}
           />
-         <Shuffle
+           <Shuffle
             size={26}
-            className="text-green-700 absolute right-12 top-1/2 transform -translate-y-1/2 bg-green-100 rounded-full p-1 cursor-pointer"
-            onClick={handleShuffleClick}
-          />
+            className={`text-green-700 absolute right-12 top-1/2 transform -translate-y-1/2 bg-green-100 rounded-full p-1 cursor-pointer ${isFetching ? "cursor-not-allowed opacity-80 text-green-100/40" : "cursor-pointer"}`}
+            onClick={!isFetching ? handleShuffleClick : undefined} // Disable clicks when fetching
+            />
           <CornerDownRight
             size={26}
-            className=" absolute right-3 top-1/2 transform -translate-y-1/2 rounded-full p-1 cursor-pointer bg-green-700 text-green-100"
-            onClick={handleSubmit}
+            className={`absolute right-3 top-1/2 transform -translate-y-1/2 rounded-full p-1 
+              ${isFetching ? "cursor-not-allowed opacity-80 bg-green-700/40" : "bg-green-700 cursor-pointer"} text-green-100`}
+            onClick={!isFetching ? handleSubmit : undefined} // Disable clicks when fetching
             onKeyDown={(e) => {
-              if (e.key === "Enter") {
+              if (!isFetching && e.key === "Enter") {
                 handleSubmit();
               }
             }}
-        />
+          />
         </div>
         <div className="flex justify-end mr-2 w-[600px] max-md:w-[400px]">
           <h3 className="text-green-600 outfit-regular text-xs mt-2">
             Powered by{" "}
             <img
-              className="inline-block object-contain size-6"
+              className="inline-block object-contain w-5 h-5"
               src="https://i.postimg.cc/v8zR1Bfd/Gemini-Icon-300x300-png.webp"
+              alt="Gemini"
+              loading="eager"
             />
           </h3>
         </div>
@@ -202,7 +213,7 @@ export default function Home() {
             <Image src="/1.png" width={300} height={300} alt="Healthy Food" />
             <div className="flex items-center justify-center gap-2 mt-5">
               <p className="text-green-700 text-center font-bold outfit-regular-italic"> 
-                Cook some great 
+                Discover some great 
                 <span> <Soup className="inline-block size-6 text-green-700 mb-1 mx-1"/></span> 
                 with us!
               </p> 
@@ -210,8 +221,18 @@ export default function Home() {
           </div>
         </div>
       )}
+
+      {geminiError && (
+         <div className="min-h-[60vh] flex items-center justify-center">
+          <div className="flex items-center justify-center flex-col gap-10">
+            <h3 className="text-green-700 text-left text-xl outfit-regular">Something went wrong <br /> Please cook with us later! 🙏 </h3>
+            <Image src="/2.gif" width={200} height={200} alt="Error" className="rounded-xl shadow-xl"/>
+          </div>
+       </div>
+      )} 
+
       <div className="grid grid-cols-2 my-10 place-items-center gap-8 max-sm:grid-cols-1 max-lg:px-5">
-        {geminiLoading ? (
+        {geminiLoading && !geminiError ? (
           <SkeletonCard />
         ) : (
           cardData?.map((card, index) => (

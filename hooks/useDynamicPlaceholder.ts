@@ -3,8 +3,8 @@ import { useEffect, useState } from "react";
 
 export const placeholders = [
     "I have spinach, what can I make ?",
-    "Suggest some recipe for breakfast",
-    "I'm feeling happy, what should I cook ?",
+    "Suggest recipes for breakfast",
+    "I'm happy today, what should I cook ?",
     "Any healthy evening snacks ?",
 ]; 
 

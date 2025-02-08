@@ -151,25 +151,25 @@ export default function Home() {
   return (
     <div className="container max-w-3xl mx-auto">
       {/* Header */}
-      <div className="flex justify-center flex-col items-center gap-2 mt-5">
+      <div className="flex justify-center flex-col items-center gap-4 mt-12">
         <h1 className="text-7xl outfit-extrabold tracking-wide bg-gradient-to-br from-green-300 via-green-600 to-green-500 text-transparent bg-clip-text animate-gradient-bg max-md:text-5xl">
           Healthy F
           <img
-            className="inline-block object-contain size-12 animate-bounce-slow max-md:size-16"
+            className="inline-block object-contain size-12 animate-bounce-slow max-md:size-8"
             src="https://i.postimg.cc/SsbJKSKr/pngtree-healthy-food-png-png-image-10154104.png"
             alt="Food Icon"
             loading="eager"
           />
           od
         </h1>
-        <p className="text-md text-green-700 outfit-regular-italic">
+        <p className="text-md text-green-700 text-center outfit-regular-italic max-lg:text-sm">
           Discover the best healthy dishes curated for you
         </p>
       </div>
 
       {/* Search  */}
-      <div className="mt-10 flex-col flex items-center ">
-        <div className="relative w-[600px] max-md:w-[400px] ">
+      <div className="mt-8 flex-col flex items-center ">
+        <div className="relative w-[600px] max-md:w-[360px] ">
           <Input
             placeholder={placeholder}
             className="rounded-full bg-green-800/15 w-full caret-green-800 shadow-green-800/20 shadow-lg pr-20"
@@ -193,7 +193,7 @@ export default function Home() {
             }}
           />
         </div>
-        <div className="flex justify-end mr-2 w-[600px] max-md:w-[400px]">
+        <div className="flex justify-end mr-2 w-[600px] max-md:w-[360px]">
           <h3 className="text-green-600 outfit-regular text-xs mt-2">
             Powered by{" "}
             <img
@@ -212,9 +212,9 @@ export default function Home() {
           <div className="flex items-center justify-center flex-col">
             <Image src="/1.png" width={300} height={300} alt="Healthy Food" />
             <div className="flex items-center justify-center gap-2 mt-5">
-              <p className="text-green-700 text-center font-bold outfit-regular-italic"> 
+              <p className="text-green-700/70 text-center font-bold outfit-regular-italic"> 
                 Discover some great 
-                <span> <Soup className="inline-block size-6 text-green-700 mb-1 mx-1"/></span> 
+                <span> <Soup className="inline-block size-6 text-green-700/70 mb-1 mx-1"/></span> 
                 with us!
               </p> 
             </div>

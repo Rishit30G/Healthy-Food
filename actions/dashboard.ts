@@ -16,6 +16,9 @@ export async function getDetails(userInput: string) {
             Image Prompt: Should be highly descriptive to generate the best possible image. It must include details about color, texture, ingredients, plating, and background to ensure visual accuracy and it should be very long and very descriptive. Also if the dish is Indian then make sure the dish is converted into english words properly so that image looks proper
             Ensure that all four items adhere to these rules and do not include any unhealthy or junk food.
             Also make sure there is no non-vegetarian food included, I should only get food which vegetarian, even if user asks for non-vegetarian food give the vegetarian alternatives of it ”
+            If the user mentiones that he/she is sick then provide the food which is good for health and can be consumed by sick people
+            If the user mentions that he/she is on diet then provide the food which is good for diet and can be consumed by people who are on diet
+            If the user is allergic to something then provide the food which is good for allergic people and can be consumed by allergic people
             This should be the JSON format strictly, title with small 't', description with small 'd' and image_prompt with small 'i'
             {
                 'title'

@@ -40,7 +40,7 @@ export async function POST(req: NextRequest) {
         return new NextResponse(imageBuffer, {
             status: 200,
             headers: {
-                "Content-Type": "image/png" // Set appropriate content type
+                "Content-Type": "image/png" 
             }
         });
     } catch (error) {

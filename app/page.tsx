@@ -2,11 +2,7 @@
 
 import { Input } from "@/components/ui/input";
 import { CornerDownRight, Shuffle, Soup } from "lucide-react";
-import {
-  Card,
-  CardContent,
-  CardFooter,
-} from "@/components/ui/card";
+import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import Image from "next/image";
 import SkeletonCard from "@/components/SkeletonCard";
 import { useEffect, useState } from "react";
@@ -18,10 +14,19 @@ import {
 } from "@/hooks/useDynamicPlaceholder";
 import Link from "next/link";
 
+type cardType = {
+  title: string;
+  description: string;
+  videoUrl: string;
+  image_prompt: string;
+  imageUrl: string | null;
+  youtube: string | null;
+};
+
 export default function Home() {
   const [userInput, setUserInput] = useState("");
   //eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const [cardData, setCardData] = useState<any[]>([]);
+  const [cardData, setCardData] = useState<cardType[]>([]);
   const [hasSearched, setHasSearched] = useState<boolean>(false);
   const [isFetching, setIsFetching] = useState(false);
   const placeholder = useDynamicPlaceholder(placeholders, 6000);
@@ -33,7 +38,6 @@ export default function Home() {
     error: geminiError,
   } = useFetch(getDetails);
 
-
   const handleSubmit = async () => {
     if (!userInput.trim()) return;
     setHasSearched(true);
@@ -42,76 +46,75 @@ export default function Home() {
   };
 
   const handleShuffleClick = () => {
-   //set random placeholders array in the setUserInput 
+    //set random placeholders array in the setUserInput
     setUserInput(placeholders[Math.floor(Math.random() * placeholders.length)]);
-  }
+  };
 
   const fetchImage = async (prompt: string) => {
     try {
-      const response = await fetch('/api/image', {
-        method: 'POST',
+      const response = await fetch("/api/image", {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({ prompt }),
       });
 
-      const contentType = response.headers.get('content-type');
-      if (!contentType?.startsWith('image/')) {
+      const contentType = response.headers.get("content-type");
+      if (!contentType?.startsWith("image/")) {
         const errorData = await response.json();
-        throw new Error(errorData.message || 'Invalid image response');
+        throw new Error(errorData.message || "Invalid image response");
       }
 
       const blob = await response.blob();
-
-      if (!blob.type.startsWith('image/')) {
-        throw new Error('Received non-image content');
-      }
-
-
       return URL.createObjectURL(blob);
     } catch (error) {
       console.error("Failed to generate image", error);
-      return '/image.jpeg'; // Fallback image path
+      return "/image.jpeg"; // Fallback image path
     }
   };
 
   useEffect(() => {
     const fetchYoutubeAndImages = async () => {
-      if (!geminiData || geminiData.length === 0) return; // Prevent running on empty data
-      setIsFetching(true); // 🔹 Disable button
+      if (!geminiData || geminiData.length === 0) return;
+      setIsFetching(true);
       try {
-        // 🔹 Fetch YouTube videos for each item in geminiData
         const withYouTube = await Promise.all(
-          //eslint-disable-next-line @typescript-eslint/no-explicit-any
-          geminiData.map(async (item: any) => {
+          geminiData.map(async (item: cardType) => {
             try {
-              const response = await fetch(`/api/youtube?query=${encodeURIComponent(item.title)}`);
+              const response = await fetch(
+                `/api/youtube?query=${encodeURIComponent(item.title)}`
+              );
               const data = await response.json();
               return {
                 ...item,
                 youtube: data.videoUrl || null,
                 imageUrl: null,
-                imagePrompt: item.image_prompt
+                imagePrompt: item.image_prompt,
               };
             } catch (error) {
               console.error("YouTube API fetch failed:", error);
-              return { ...item, youtube: null, imageUrl: null, imagePrompt: item.image_prompt };
+              return {
+                ...item,
+                youtube: null,
+                imageUrl: null,
+                imagePrompt: item.image_prompt,
+              };
             }
           })
         );
-  
-        setCardData(withYouTube); 
-  
+
+        setCardData(withYouTube);
+
         //eslint-disable-next-line @typescript-eslint/no-explicit-any
         const batches: any[][] = [];
         for (let i = 0; i < withYouTube.length; i += 2) {
           batches.push(withYouTube.slice(i, i + 2));
         }
-  
+
         for (let i = 0; i < batches.length; i++) {
           const batch = batches[i];
-  
+
           // Fetch images in parallel for each batch
           const imageResults = await Promise.all(
             batch.map(async (card) => {
@@ -124,15 +127,19 @@ export default function Home() {
               }
             })
           );
-  
+
           // 🔹 Efficient state update using function form
           setCardData((prev) =>
             prev.map((prevCard) => {
-              const foundImage = imageResults.find((img) => img.title === prevCard.title);
-              return foundImage ? { ...prevCard, imageUrl: foundImage.imageUrl } : prevCard;
+              const foundImage = imageResults.find(
+                (img) => img.title === prevCard.title
+              );
+              return foundImage
+                ? { ...prevCard, imageUrl: foundImage.imageUrl }
+                : prevCard;
             })
           );
-  
+
           // 🔹 Avoid excessive delays unless necessary
           if (i < batches.length - 1) {
             await new Promise((resolve) => setTimeout(resolve, 60 * 1000));
@@ -140,13 +147,13 @@ export default function Home() {
         }
       } catch (error) {
         console.error("Error in fetchYoutubeAndImages:", error);
-      }finally {
-        setIsFetching(false); // 🔹 Enable button after fetch completes
+      } finally {
+        setIsFetching(false);
       }
     };
-  
+
     fetchYoutubeAndImages();
-  }, [geminiData]); // Depend only on geminiData
+  }, [geminiData]);
 
   return (
     <div className="container max-w-3xl mx-auto">
@@ -154,11 +161,14 @@ export default function Home() {
       <div className="flex justify-center flex-col items-center gap-4 mt-12">
         <h1 className="text-7xl outfit-extrabold tracking-wide bg-gradient-to-br from-green-300 via-green-600 to-green-500 text-transparent bg-clip-text animate-gradient-bg max-md:text-5xl">
           Healthy F
-          <img
+          <Image
             className="inline-block object-contain size-12 animate-bounce-slow max-md:size-8"
+            width={100}
+            height={100}
             src="https://i.postimg.cc/SsbJKSKr/pngtree-healthy-food-png-png-image-10154104.png"
-            alt="Food Icon"
+            alt="Healthy Food"
             loading="eager"
+            fetchPriority="high"
           />
           od
         </h1>
@@ -176,16 +186,24 @@ export default function Home() {
             value={userInput}
             onChange={(e) => setUserInput(e.target.value)}
           />
-           <Shuffle
+          <Shuffle
             size={26}
-            className={`text-green-700 absolute right-12 top-1/2 transform -translate-y-1/2 bg-green-100 rounded-full p-1 cursor-pointer ${isFetching ? "cursor-not-allowed opacity-80 text-green-100/40" : "cursor-pointer"}`}
-            onClick={!isFetching ? handleShuffleClick : undefined} // Disable clicks when fetching
-            />
+            className={`text-green-700 absolute right-12 top-1/2 transform -translate-y-1/2 bg-green-100 rounded-full p-1 cursor-pointer ${
+              isFetching
+                ? "cursor-not-allowed opacity-80 text-green-100/40"
+                : "cursor-pointer"
+            }`}
+            onClick={!isFetching ? handleShuffleClick : undefined}
+          />
           <CornerDownRight
             size={26}
             className={`absolute right-3 top-1/2 transform -translate-y-1/2 rounded-full p-1 
-              ${isFetching ? "cursor-not-allowed opacity-80 bg-green-700/40" : "bg-green-700 cursor-pointer"} text-green-100`}
-            onClick={!isFetching ? handleSubmit : undefined} // Disable clicks when fetching
+              ${
+                isFetching
+                  ? "cursor-not-allowed opacity-80 bg-green-700/40"
+                  : "bg-green-700 cursor-pointer"
+              } text-green-100`}
+            onClick={!isFetching ? handleSubmit : undefined}
             onKeyDown={(e) => {
               if (!isFetching && e.key === "Enter") {
                 handleSubmit();
@@ -207,29 +225,48 @@ export default function Home() {
       </div>
 
       {/* Cards  */}
-      {!hasSearched && (  // Show only when no search has been made
+      {!hasSearched && (
         <div className="min-h-[60vh] flex items-center justify-center">
           <div className="flex items-center justify-center flex-col">
-            <Image src="/1.png" width={300} height={300} alt="Healthy Food" />
+            <Image
+              src="/1.png"
+              width={300}
+              height={300}
+              alt="Healthy Food"
+              loading="eager"
+              priority
+              quality={100}
+            />
             <div className="flex items-center justify-center gap-2 mt-5">
-              <p className="text-green-700/70 text-center font-bold outfit-regular-italic"> 
-                Discover some great 
-                <span> <Soup className="inline-block size-6 text-green-700/70 mb-1 mx-1"/></span> 
+              <p className="text-green-700/70 text-center font-bold outfit-regular-italic">
+                Discover some great
+                <span>
+                  {" "}
+                  <Soup className="inline-block size-6 text-green-700/70 mb-1 mx-1" />
+                </span>
                 with us!
-              </p> 
+              </p>
             </div>
           </div>
         </div>
       )}
 
       {geminiError && (
-         <div className="min-h-[60vh] flex items-center justify-center">
+        <div className="min-h-[60vh] flex items-center justify-center">
           <div className="flex items-center justify-center flex-col gap-10">
-            <h3 className="text-green-700 text-left text-xl outfit-regular">Something went wrong <br /> Please cook with us later! 🙏 </h3>
-            <Image src="/2.gif" width={200} height={200} alt="Error" className="rounded-xl shadow-xl"/>
+            <h3 className="text-green-700 text-left text-xl outfit-regular">
+              Something went wrong <br /> Please cook with us later! 🙏{" "}
+            </h3>
+            <Image
+              src="/2.gif"
+              width={200}
+              height={200}
+              alt="Error"
+              className="rounded-xl shadow-xl"
+            />
           </div>
-       </div>
-      )} 
+        </div>
+      )}
 
       <div className="grid grid-cols-2 my-10 place-items-center gap-8 max-sm:grid-cols-1 max-lg:px-5">
         {geminiLoading && !geminiError ? (
@@ -241,13 +278,15 @@ export default function Home() {
               className="bg-green-100/30 shadow-lg rounded-t-xl min-h-[550px] max-lg:min-h-fit"
             >
               <CardContent className="space-y-5">
-                {
-                  !card.imageUrl ? (
-                    <div className="w-full h-[23rem] bg-green-800/20 rounded-tr-lg rounded-tl-lg animate-pulse" />
-                  ) : (
-                    <img src={card.imageUrl} className="w-full h-full rounded-tr-lg rounded-tl-lg" alt={card.title} />
-                  )
-                }
+                {!card.imageUrl ? (
+                  <div className="w-full h-[23rem] bg-green-800/20 rounded-tr-lg rounded-tl-lg animate-pulse" />
+                ) : (
+                  <img
+                    src={card.imageUrl}
+                    className="w-full h-full rounded-tr-lg rounded-tl-lg"
+                    alt={card.title}
+                  />
+                )}
 
                 <div className="flex justify-between flex-col w-full gap-2 px-3">
                   <h2 className="text-2xl text-green-700 outfit-bold">
@@ -259,17 +298,21 @@ export default function Home() {
                 </div>
               </CardContent>
               <CardFooter className="justify-end items-center px-5 mb-3">
-              {card.youtube && (
-                <Link href={card.youtube} target="_blank" rel="noopener noreferrer">
-                  <Image
-                    src="https://www.freeiconspng.com/thumbs/youtube-logo-png/hd-youtube-logo-png-transparent-background-20.png"
-                    alt="YouTube"
-                    className="inline-block object-contain cursor-pointer"
-                    width={30}
-                    height={30}
-                  />
-                </Link>
-              )}
+                {card.youtube && (
+                  <Link
+                    href={card.youtube}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    <Image
+                      src="https://www.freeiconspng.com/thumbs/youtube-logo-png/hd-youtube-logo-png-transparent-background-20.png"
+                      alt="YouTube"
+                      className="inline-block object-contain cursor-pointer"
+                      width={30}
+                      height={30}
+                    />
+                  </Link>
+                )}
               </CardFooter>
             </Card>
           ))

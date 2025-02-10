@@ -13,6 +13,7 @@ import {
   useDynamicPlaceholder,
 } from "@/hooks/useDynamicPlaceholder";
 import Link from "next/link";
+import Footer from "@/components/footer";
 
 type cardType = {
   title: string;
@@ -318,6 +319,7 @@ export default function Home() {
           ))
         )}
       </div>
+      <Footer/>
     </div>
   );
 }

@@ -157,169 +157,171 @@ export default function Home() {
   }, [geminiData]);
 
   return (
-    <div className="container max-w-3xl mx-auto">
-      {/* Header */}
-      <div className="flex justify-center flex-col items-center gap-4 mt-12">
-        <h1 className="text-7xl outfit-extrabold tracking-wide bg-gradient-to-br from-green-300 via-green-600 to-green-500 text-transparent bg-clip-text animate-gradient-bg max-md:text-5xl">
-          Healthy F
-          <Image
-            className="inline-block object-contain size-12 animate-bounce-slow max-md:size-8"
-            width={100}
-            height={100}
-            src="https://i.postimg.cc/SsbJKSKr/pngtree-healthy-food-png-png-image-10154104.png"
-            alt="Healthy Food"
-            loading="eager"
-            fetchPriority="high"
-          />
-          od
-        </h1>
-        <p className="text-md text-green-700 text-center outfit-regular-italic max-lg:text-sm">
-          Discover the best healthy dishes curated for you
-        </p>
-      </div>
+    <>
+      <div className="container max-w-3xl mx-auto">
+        {/* Header */}
+        <div className="flex justify-center flex-col items-center gap-4 mt-12">
+          <h1 className="text-7xl outfit-extrabold tracking-wide bg-gradient-to-br from-green-300 via-green-600 to-green-500 text-transparent bg-clip-text animate-gradient-bg max-md:text-5xl">
+            Healthy F
+            <Image
+              className="inline-block object-contain size-12 animate-bounce-slow max-md:size-8"
+              width={100}
+              height={100}
+              src="https://i.postimg.cc/SsbJKSKr/pngtree-healthy-food-png-png-image-10154104.png"
+              alt="Healthy Food"
+              loading="eager"
+              fetchPriority="high"
+            />
+            od
+          </h1>
+          <p className="text-md text-green-700 text-center outfit-regular-italic max-lg:text-sm">
+            Discover the best healthy dishes curated for you
+          </p>
+        </div>
 
-      {/* Search  */}
-      <div className="mt-8 flex-col flex items-center ">
-        <div className="relative w-[600px] max-md:w-[360px] ">
-          <Input
-            placeholder={placeholder}
-            className="rounded-full bg-green-800/15 w-full caret-green-800 shadow-green-800/20 shadow-lg pr-20"
-            value={userInput}
-            onChange={(e) => setUserInput(e.target.value)}
-          />
-          <Shuffle
-            size={26}
-            className={`text-green-700 absolute right-12 top-1/2 transform -translate-y-1/2 bg-green-100 rounded-full p-1 cursor-pointer ${
-              isFetching
-                ? "cursor-not-allowed opacity-80 text-green-100/40"
-                : "cursor-pointer"
-            }`}
-            onClick={!isFetching ? handleShuffleClick : undefined}
-          />
-          <CornerDownRight
-            size={26}
-            className={`absolute right-3 top-1/2 transform -translate-y-1/2 rounded-full p-1 
+        {/* Search  */}
+        <div className="mt-8 flex-col flex items-center ">
+          <div className="relative w-[600px] max-md:w-[360px] ">
+            <Input
+              placeholder={placeholder}
+              className="rounded-full bg-green-800/15 w-full caret-green-800 shadow-green-800/20 shadow-lg pr-20"
+              value={userInput}
+              onChange={(e) => setUserInput(e.target.value)}
+            />
+            <Shuffle
+              size={26}
+              className={`text-green-700 absolute right-12 top-1/2 transform -translate-y-1/2 bg-green-100 rounded-full p-1 cursor-pointer ${
+                isFetching
+                  ? "cursor-not-allowed opacity-80 text-green-100/40"
+                  : "cursor-pointer"
+              }`}
+              onClick={!isFetching ? handleShuffleClick : undefined}
+            />
+            <CornerDownRight
+              size={26}
+              className={`absolute right-3 top-1/2 transform -translate-y-1/2 rounded-full p-1 
               ${
                 isFetching
                   ? "cursor-not-allowed opacity-80 bg-green-700/40"
                   : "bg-green-700 cursor-pointer"
               } text-green-100`}
-            onClick={!isFetching ? handleSubmit : undefined}
-            onKeyDown={(e) => {
-              if (!isFetching && e.key === "Enter") {
-                handleSubmit();
-              }
-            }}
-          />
-        </div>
-        <div className="flex justify-end mr-2 w-[600px] max-md:w-[360px]">
-          <h3 className="text-green-600 outfit-regular text-xs mt-2">
-            Powered by{" "}
-            <img
-              className="inline-block object-contain w-5 h-5"
-              src="https://i.postimg.cc/v8zR1Bfd/Gemini-Icon-300x300-png.webp"
-              alt="Gemini"
-              loading="eager"
+              onClick={!isFetching ? handleSubmit : undefined}
+              onKeyDown={(e) => {
+                if (!isFetching && e.key === "Enter") {
+                  handleSubmit();
+                }
+              }}
             />
-          </h3>
+          </div>
+          <div className="flex justify-end mr-2 w-[600px] max-md:w-[360px]">
+            <h3 className="text-green-600 outfit-regular text-xs mt-2">
+              Powered by{" "}
+              <img
+                className="inline-block object-contain w-5 h-5"
+                src="https://i.postimg.cc/v8zR1Bfd/Gemini-Icon-300x300-png.webp"
+                alt="Gemini"
+                loading="eager"
+              />
+            </h3>
+          </div>
         </div>
-      </div>
 
-      {/* Cards  */}
-      {!hasSearched && (
-        <div className="min-h-[60vh] flex items-center justify-center">
-          <div className="flex items-center justify-center flex-col">
-            <Image
-              src="/1.png"
-              width={300}
-              height={300}
-              alt="Healthy Food"
-              loading="eager"
-              priority
-              quality={100}
-            />
-            <div className="flex items-center justify-center gap-2 mt-5">
-              <p className="text-green-700/70 text-center font-bold outfit-regular-italic">
-                Discover some great
-                <span>
-                  {" "}
-                  <Soup className="inline-block size-6 text-green-700/70 mb-1 mx-1" />
-                </span>
-                with us!
-              </p>
+        {/* Cards  */}
+        {!hasSearched && (
+          <div className="min-h-[60vh] flex items-center justify-center">
+            <div className="flex items-center justify-center flex-col">
+              <Image
+                src="/1.png"
+                width={300}
+                height={300}
+                alt="Healthy Food"
+                loading="eager"
+                priority
+                quality={100}
+              />
+              <div className="flex items-center justify-center gap-2 mt-5">
+                <p className="text-green-700/70 text-center font-bold outfit-regular-italic">
+                  Discover some great
+                  <span>
+                    {" "}
+                    <Soup className="inline-block size-6 text-green-700/70 mb-1 mx-1" />
+                  </span>
+                  with us!
+                </p>
+              </div>
             </div>
           </div>
-        </div>
-      )}
-
-      {geminiError && (
-        <div className="min-h-[60vh] flex items-center justify-center">
-          <div className="flex items-center justify-center flex-col gap-10">
-            <h3 className="text-green-700 text-left text-xl outfit-regular">
-              Something went wrong <br /> Please cook with us later! 🙏{" "}
-            </h3>
-            <Image
-              src="/2.gif"
-              width={200}
-              height={200}
-              alt="Error"
-              className="rounded-xl shadow-xl"
-            />
-          </div>
-        </div>
-      )}
-
-      <div className="grid grid-cols-2 my-10 place-items-center gap-8 max-sm:grid-cols-1 max-lg:px-5">
-        {geminiLoading && !geminiError ? (
-          <SkeletonCard />
-        ) : (
-          cardData?.map((card, index) => (
-            <Card
-              key={index}
-              className="bg-green-100/30 shadow-lg rounded-t-xl min-h-[550px] max-lg:min-h-fit"
-            >
-              <CardContent className="space-y-5">
-                {!card.imageUrl ? (
-                  <div className="w-full h-[23rem] bg-green-800/20 rounded-tr-lg rounded-tl-lg animate-pulse" />
-                ) : (
-                  <img
-                    src={card.imageUrl}
-                    className="w-full h-full rounded-tr-lg rounded-tl-lg"
-                    alt={card.title}
-                  />
-                )}
-
-                <div className="flex justify-between flex-col w-full gap-2 px-3">
-                  <h2 className="text-2xl text-green-700 outfit-bold">
-                    {card.title}
-                  </h2>
-                  <h5 className="text-green-800 text-sm tracking-tight outfit-regular w-[100%]">
-                    {card.description}
-                  </h5>
-                </div>
-              </CardContent>
-              <CardFooter className="justify-end items-center px-5 mb-3">
-                {card.youtube && (
-                  <Link
-                    href={card.youtube}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                  >
-                    <Image
-                      src="https://www.freeiconspng.com/thumbs/youtube-logo-png/hd-youtube-logo-png-transparent-background-20.png"
-                      alt="YouTube"
-                      className="inline-block object-contain cursor-pointer"
-                      width={30}
-                      height={30}
-                    />
-                  </Link>
-                )}
-              </CardFooter>
-            </Card>
-          ))
         )}
+
+        {geminiError && (
+          <div className="min-h-[60vh] flex items-center justify-center">
+            <div className="flex items-center justify-center flex-col gap-10">
+              <h3 className="text-green-700 text-left text-xl outfit-regular">
+                Something went wrong <br /> Please cook with us later! 🙏{" "}
+              </h3>
+              <Image
+                src="/2.gif"
+                width={200}
+                height={200}
+                alt="Error"
+                className="rounded-xl shadow-xl"
+              />
+            </div>
+          </div>
+        )}
+
+        <div className="grid grid-cols-2 my-10 place-items-center gap-8 max-sm:grid-cols-1 max-lg:px-5">
+          {geminiLoading && !geminiError ? (
+            <SkeletonCard />
+          ) : (
+            cardData?.map((card, index) => (
+              <Card
+                key={index}
+                className="bg-green-100/30 shadow-lg rounded-t-xl min-h-[550px] max-lg:min-h-fit"
+              >
+                <CardContent className="space-y-5">
+                  {!card.imageUrl ? (
+                    <div className="w-full h-[23rem] bg-green-800/20 rounded-tr-lg rounded-tl-lg animate-pulse" />
+                  ) : (
+                    <img
+                      src={card.imageUrl}
+                      className="w-full h-full rounded-tr-lg rounded-tl-lg"
+                      alt={card.title}
+                    />
+                  )}
+
+                  <div className="flex justify-between flex-col w-full gap-2 px-3">
+                    <h2 className="text-2xl text-green-700 outfit-bold">
+                      {card.title}
+                    </h2>
+                    <h5 className="text-green-800 text-sm tracking-tight outfit-regular w-[100%]">
+                      {card.description}
+                    </h5>
+                  </div>
+                </CardContent>
+                <CardFooter className="justify-end items-center px-5 mb-3">
+                  {card.youtube && (
+                    <Link
+                      href={card.youtube}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
+                      <Image
+                        src="https://www.freeiconspng.com/thumbs/youtube-logo-png/hd-youtube-logo-png-transparent-background-20.png"
+                        alt="YouTube"
+                        className="inline-block object-contain cursor-pointer"
+                        width={30}
+                        height={30}
+                      />
+                    </Link>
+                  )}
+                </CardFooter>
+              </Card>
+            ))
+          )}
+        </div>
       </div>
-      <Footer/>
-    </div>
+      <Footer />
+    </>
   );
 }

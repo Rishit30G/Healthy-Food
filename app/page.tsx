@@ -13,7 +13,6 @@ import {
   useDynamicPlaceholder,
 } from "@/hooks/useDynamicPlaceholder";
 import Link from "next/link";
-import Footer from "@/components/footer";
 
 type cardType = {
   title: string;
@@ -157,7 +156,6 @@ export default function Home() {
   }, [geminiData]);
 
   return (
-    <>
       <div className="container max-w-3xl mx-auto">
         {/* Header */}
         <div className="flex justify-center flex-col items-center gap-4 mt-12">
@@ -321,7 +319,5 @@ export default function Home() {
           )}
         </div>
       </div>
-      <Footer />
-    </>
   );
 }
